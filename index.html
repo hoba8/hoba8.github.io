@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fc">
+  <meta name="description" content="Explore interactive visual guides to binary search and dynamic arrays.">
+  <title>Algo Studio — Interactive Visualizers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fc;
+      --surface: #fff;
+      --ink: #17233d;
+      --muted: #66738e;
+      --line: #e3e8f2;
+      --blue: #3568ed;
+      --blue-dark: #244fc4;
+      --mint: #e7f8f1;
+      --mint-ink: #14815d;
+      --lavender: #f0edff;
+      --lavender-ink: #7053d6;
+      --shadow: 0 18px 50px rgb(35 56 100 / 8%);
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 8% 5%, rgb(214 226 255 / 60%), transparent 34rem),
+        radial-gradient(ellipse at 92% 70%, rgb(220 247 238 / 55%), transparent 30rem),
+        var(--bg);
+    }
+
+    a { color: inherit; }
+
+    .page {
+      width: min(100% - 40px, 1080px);
+      margin-inline: auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 82px;
+      border-bottom: 1px solid rgb(206 215 232 / 70%);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -.03em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 11px;
+      color: white;
+      background: var(--blue);
+      box-shadow: 0 5px 12px rgb(53 104 237 / 24%);
+    }
+
+    .brand-mark svg { width: 19px; height: 19px; }
+
+    .top-note {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    main { padding: 76px 0 78px; }
+
+    .intro {
+      max-width: 660px;
+      margin: 0 auto 42px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 17px;
+      color: var(--blue-dark);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4bb78c;
+      content: "";
+      box-shadow: 0 0 0 4px rgb(75 183 140 / 14%);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 6vw, 58px);
+      line-height: 1.08;
+      letter-spacing: -.065em;
+    }
+
+    h1 span { color: var(--blue); }
+
+    .intro-copy {
+      max-width: 490px;
+      margin: 18px auto 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .topic {
+      position: relative;
+      display: flex;
+      min-height: 294px;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 27px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgb(255 255 255 / 92%);
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .topic::after {
+      position: absolute;
+      right: -35px;
+      bottom: -64px;
+      width: 175px;
+      height: 175px;
+      border-radius: 50%;
+      background: var(--glow);
+      content: "";
+      transition: transform .25s ease;
+    }
+
+    .topic:hover {
+      transform: translateY(-4px);
+      border-color: #cbd7f5;
+      box-shadow: 0 24px 60px rgb(35 56 100 / 13%);
+    }
+
+    .topic:hover::after { transform: scale(1.12); }
+
+    .topic:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 4px;
+    }
+
+    .topic-search { --glow: var(--mint); }
+    .topic-array { --glow: var(--lavender); }
+
+    .topic-top {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 27px;
+    }
+
+    .topic-icon {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border-radius: 15px;
+    }
+
+    .topic-search .topic-icon { color: var(--mint-ink); background: var(--mint); }
+    .topic-array .topic-icon { color: var(--lavender-ink); background: var(--lavender); }
+    .topic-icon svg { width: 25px; height: 25px; }
+
+    .topic-number {
+      color: #98a3b8;
+      font: 12px "Space Mono", monospace;
+    }
+
+    .topic h2 {
+      max-width: 320px;
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: -.04em;
+    }
+
+    .topic p {
+      max-width: 340px;
+      margin: 11px 0 23px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .topic-action {
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: auto;
+      color: var(--blue-dark);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .topic-action svg {
+      width: 17px;
+      height: 17px;
+      transition: transform .2s ease;
+    }
+
+    .topic:hover .topic-action svg { transform: translateX(4px); }
+
+    .hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin: 28px auto 0;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .hint svg { width: 16px; height: 16px; flex: none; color: var(--blue); }
+
+    footer {
+      display: flex;
+      min-height: 68px;
+      align-items: center;
+      justify-content: center;
+      border-top: 1px solid rgb(206 215 232 / 70%);
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      .page { width: min(100% - 32px, 440px); }
+      .topbar { min-height: 68px; }
+      .top-note { font-size: 11px; }
+      main { padding: 53px 0 58px; }
+      .intro { margin-bottom: 30px; }
+      .intro-copy { font-size: 15px; }
+      .topic-grid { grid-template-columns: 1fr; gap: 14px; }
+      .topic { min-height: 260px; padding: 22px; border-radius: 17px; }
+      .topic-top { margin-bottom: 22px; }
+      .topic h2 { font-size: 22px; }
+      .topic p { margin: 9px 0 19px; }
+      .hint { align-items: flex-start; line-height: 1.5; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="Algo Studio home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 7h6M4 12h10M4 17h16"></path>
+            <circle cx="17" cy="7" r="2"></circle>
+            <circle cx="18" cy="12" r="2"></circle>
+          </svg>
+        </span>
+        Algo Studio
+      </a>
+      <span class="top-note">Learn by seeing</span>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Interactive learning</p>
+        <h1 id="page-title">Algorithms, <span>made visible.</span></h1>
+        <p class="intro-copy">Choose a visualizer to explore how things work, one clear step at a time.</p>
+      </section>
+
+      <nav class="topic-grid" aria-label="Choose a topic">
+        <a class="topic topic-search" href="./binary_search_step%20_by_step.html">
+          <div class="topic-top">
+            <span class="topic-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="10.8" cy="10.8" r="6.8"></circle>
+                <path d="m16 16 4.5 4.5M8 11h5.5M10.75 8.25v5.5"></path>
+              </svg>
+            </span>
+            <span class="topic-number">TOPIC 01</span>
+          </div>
+          <h2>Binary Search</h2>
+          <p>Follow the low, middle, and high pointers as each step cuts the search space in half.</p>
+          <span class="topic-action">
+            Open visualizer
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6"></path>
+            </svg>
+          </span>
+        </a>
+
+        <a class="topic topic-array" href="./Dynamic%20Array%20Visualizer.html">
+          <div class="topic-top">
+            <span class="topic-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                <path d="M9 5v14M15 5v14"></path>
+                <path d="M6 12h.01M12 12h.01M18 12h.01"></path>
+              </svg>
+            </span>
+            <span class="topic-number">TOPIC 02</span>
+          </div>
+          <h2>Dynamic Array</h2>
+          <p>See how arrays grow, shift, insert, and remove values as their capacity changes.</p>
+          <span class="topic-action">
+            Open visualizer
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6"></path>
+            </svg>
+          </span>
+        </a>
+      </nav>
+
+      <p class="hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v18M3 12h18"></path>
+          <circle cx="12" cy="12" r="9"></circle>
+        </svg>
+        Pick a topic to open its interactive, step-by-step guide.
+      </p>
+    </main>
+
+    <footer>Small steps. Clear ideas. Better understanding.</footer>
+  </div>
+</body>
+</html>
