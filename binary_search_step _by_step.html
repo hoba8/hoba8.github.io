@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Binary Search, step by step</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#1c2740;--mute:#6b7894;--line:#e1e6f0;--blue:#3b6df5;--amb:#f0a020;--grn:#18a574;--red:#e5484d;--vio:#8b5cf6;--code:#10182b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1222;--card:#151c33;--ink:#e7ecf8;--mute:#93a0c0;--line:#27304b;--blue:#6290ff;--amb:#ffb938;--grn:#2ed39a;--red:#ff6b70;--vio:#a78bfa;--code:#090d1a}}
+:root[data-theme="dark"]{--bg:#0d1222;--card:#151c33;--ink:#e7ecf8;--mute:#93a0c0;--line:#27304b;--blue:#6290ff;--amb:#ffb938;--grn:#2ed39a;--red:#ff6b70;--vio:#a78bfa;--code:#090d1a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Space Grotesk",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 18px 24px}
+h1{font-size:28px;margin:0}.sub{color:var(--mute);margin:4px 0 20px}
+button,input{font:inherit;color:var(--ink)}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px}
+button:hover:not(:disabled){border-color:var(--blue)}button:disabled{opacity:.4;cursor:default}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+label,.dim{color:var(--mute);font-size:14px}
+input[type=text],input[type=number]{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font:14px "JetBrains Mono",monospace}
+#inArr{flex:1;min-width:220px}#inT{width:84px}
+.go{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.link{border:none;background:none;color:var(--blue);padding:4px 8px;font-size:14px}
+.seg button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#warn{color:var(--red);font-weight:700;margin-top:8px}
+.grid{display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start}
+@media(max-width:940px){.grid{grid-template-columns:1fr}}
+.stage{position:relative}
+.counter{position:absolute;top:16px;right:18px;text-align:right;z-index:2}
+.counter small{display:block;color:var(--mute);font-size:12px}
+.counter b{font:700 40px/1 "JetBrains Mono",monospace;color:var(--amb);display:inline-block}
+.counter b.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.5)}}
+.scroll{overflow-x:auto;padding-top:34px}
+#arr{position:relative;height:170px}
+#band{position:absolute;top:30px;height:78px;border-radius:14px;background:rgba(59,109,245,.09);border:2px dashed var(--blue);transition:all .6s cubic-bezier(.5,0,.2,1)}
+.cw{position:absolute;top:38px;width:54px;text-align:center;transition:all .6s}
+.cw small{display:block;color:var(--mute);font:11px "JetBrains Mono",monospace;margin-top:4px}
+.cell{height:54px;border:2px solid var(--line);border-radius:12px;display:grid;place-items:center;font:600 18px "JetBrains Mono",monospace;background:var(--card);transition:all .5s}
+.cw.off{opacity:.25;transform:translateY(10px)}.cw.off .cell{border-style:dashed}
+.cw.mid .cell{border-color:var(--amb);box-shadow:0 0 0 5px rgba(240,160,32,.25);transform:translateY(-5px)}
+.cw.hit .cell{background:var(--grn);border-color:var(--grn);color:#fff;box-shadow:0 0 0 5px rgba(24,165,116,.25);animation:pop .5s}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.15)}}
+.pt{position:absolute;width:54px;text-align:center;font:700 11px "JetBrains Mono",monospace;padding:3px 0;border-radius:6px;color:#fff;transition:left .6s cubic-bezier(.5,0,.2,1),top .4s,opacity .3s;opacity:0}
+.pt.low{background:var(--blue)}.pt.mid{background:var(--amb);color:#231500}.pt.high{background:var(--vio)}
+.pt.mid::after{content:"";position:absolute;left:21px;bottom:-6px;border:6px solid transparent;border-bottom:0;border-top-color:var(--amb)}
+.pt.low::before,.pt.high::before{content:"";position:absolute;left:21px;top:-6px;border:6px solid transparent;border-top:0}
+.pt.low::before{border-bottom-color:var(--blue)}.pt.high::before{border-bottom-color:var(--vio)}
+#rng{text-align:center;color:var(--mute);font-size:14px;margin:2px 0 14px}
+.story{border-top:1px solid var(--line);padding-top:16px;min-height:132px}
+.story .t{display:inline-block;font-size:13px;font-weight:700;color:var(--blue);background:rgba(59,109,245,.12);border-radius:99px;padding:2px 12px;margin-bottom:8px}
+.story p{font-size:19px;margin:0}
+.story.good .t{color:var(--grn);background:rgba(24,165,116,.14)}.story.bad .t{color:var(--red);background:rgba(229,72,77,.14)}
+.code{background:var(--code);border-radius:16px;padding:12px 0;overflow-x:auto;font:13px/1.75 "JetBrains Mono",monospace;color:#c9d4ee}
+.code h3{margin:0 16px 6px;font:500 12px "Space Grotesk",sans-serif;color:#7f8db0}
+.ln{display:flex;white-space:pre;padding:0 16px;border-left:4px solid transparent}
+.ln i{width:26px;color:#51608a;font-style:normal;flex:none}
+.ln.on{background:rgba(98,144,255,.25);border-left-color:#ffb938;color:#fff}
+.ln.bad{background:rgba(229,72,77,.22)}.ln.good{background:rgba(24,165,116,.2)}
+.ln.cl{color:#ffb938;font-weight:600}.k{color:#ff9bd0}.c{color:#6c7ba3}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{font:14px "JetBrains Mono",monospace;border:1px solid var(--line);border-radius:10px;padding:3px 10px}.chip b{color:var(--blue)}.chip.ch{background:rgba(240,160,32,.22);animation:pop .4s}
+.math{font:15px "JetBrains Mono",monospace;color:var(--mute)}.math b{color:var(--amb);font-size:18px}
+.log{margin:0;padding:0;list-style:none;font:14px "JetBrains Mono",monospace}.log li{padding:5px 0;border-bottom:1px solid var(--line);animation:fi .4s}
+@keyframes fi{from{opacity:0;transform:translateX(-8px)}}
+.ctl{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:5;box-shadow:0 8px 28px rgba(0,0,0,.16);padding:12px 16px}
+.ctl input[type=range]{flex:1;min-width:100px}
+.cnt{margin-left:auto;color:var(--mute);font:13px "JetBrains Mono",monospace}
+.res{border-left:8px solid var(--line)}.res h2{margin:0 0 4px;font-size:22px}.res.ok{border-left-color:var(--grn)}.res.bug{border-left-color:var(--red)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Binary Search, step by step</h1>
+<p class="sub">Guess the middle. Throw away the half that cannot contain the answer. Repeat.</p>
+
+<div class="card">
+<div class="row">
+<label for="inArr">Sorted array</label><input type="text" id="inArr" value="5,12,18,23,31,40,52,67,75,90">
+<label for="inT">Search for</label><input type="number" id="inT" value="90">
+<button class="go" id="run">Run</button>
+<span class="seg"><button data-m="ok" class="on">Correct code</button><button data-m="bug">Buggy code</button></span>
+</div>
+<div id="warn" role="alert"></div>
+</div>
+
+<div class="grid">
+<div>
+<div class="card stage">
+<div class="counter"><small>comparisons</small><b id="cn">0</b></div>
+<div class="scroll"><div id="arr"></div></div>
+<div id="rng"></div>
+<div class="story" id="story"></div>
+</div>
+<div class="card"><div class="chips" id="vars"></div><div class="math" id="math"></div></div>
+<div class="card"><b>Comparison log</b><ul class="log" id="log"></ul></div>
+</div>
+<div>
+<div class="code" id="code"></div>
+<div class="card res" id="res"></div>
+</div>
+</div>
+
+<div class="card ctl"><div class="row">
+<button id="prv">&larr; Back</button><button id="nxt" class="go">Next &rarr;</button><button id="ply">&#9654; Play</button><button id="rs">&#10227; Reset</button>
+<input id="scr" type="range" min="0" max="0" value="0" aria-label="Timeline">
+<label>speed <input id="spd" type="range" min="1" max="5" value="2"></label><span class="cnt" id="cnt"></span></div></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const DEF='5,12,18,23,31,40,52,67,75,90';
+const base=['int binarySearch(int array[], int size, int searchValue) {','    int low = 0;','    int high = size - 1;','    int mid;','    int comparisons = 0;','','    while (low <= high) {','        mid = (low + high) / 2;','','        if (searchValue == array[mid]) {','            return mid;','        }','        if (searchValue > array[mid]) {','            low = mid + 1;','        } else {','            high = mid - 1;','        }'];
+const CODE={bug:[...base,'','        return -1; // BUG','    }','}'],ok:[...base,'    }','','    return -1;','}']};
+const BADLN={bug:18,ok:19};
+const TITLE={init:'Set up',while:'Anything left to search?',mid:'Pick the middle',cnt:'Count the comparison',eq:'Compare: equal?',gt:'Compare: bigger?',move:'Throw away half',found:'Found it',nf:'Not found',bugret:'Wait, what?'};
+let S={arr:[],t:0,mode:'ok',steps:[],cur:0,timer:null,lastC:0};
+const X=i=>(i+1)*62;
+
+function gen(arr,t,mode){
+ const n=arr.length,st=[];let low=null,high=null,mid=null,val=null,cmps=0,iter=0;
+ const P=(line,phase,msg,o={})=>st.push({line,phase,msg,low,high,mid,val,cmps,iter,t,...o});
+ low=0;P(1,'init',`Start with the whole array. low = 0 points at the first number.`);
+ high=n-1;P(2,'init',`high = size - 1 = ${high} points at the last number. All ${n} numbers are still possible.`);
+ P(4,'init',`comparisons = 0 : a counter. Every time the code compares searchValue with an array element, we add 1.`);
+ while(true){
+  iter++;const ok=low<=high;
+  P(6,'while',ok?`Is there anything left to search? low (${low}) <= high (${high}), so yes. Round ${iter} begins.`:`low (${low}) is now bigger than high (${high}). Nothing is left to search.`);
+  if(!ok)break;
+  const sum=low+high;mid=sum>>1;val=arr[mid];
+  P(7,'mid',`Take the middle of the range: mid = (${low} + ${high}) / 2 = ${sum} / 2 = ${mid}${sum%2?' (we round down)':''}. array[${mid}] is ${val}.`,{math:[low,high,sum,mid]});
+  cmps++;const rel=t==val?'==':t>val?'>':'<';
+  P(9,'cnt',`comparisons++ : we are about to compare searchValue with array[mid], so we count it first. Counter = ${cmps}.`);
+  P(9,'eq',`Is ${t} == ${val} ? ${t==val?'Yes!':'No, this is false.'}`,{cmp:{rel}});
+  if(t==val){P(10,'found',`${t} equals array[${mid}], so we are done. return ${mid}. Total comparisons: ${cmps}.`,{cmp:{rel},result:mid});return st;}
+  cmps++;P(12,'cnt',`The first test was false, so the next test (searchValue > array[mid]) is a NEW comparison. comparisons++ again. Counter = ${cmps}.`);
+  P(12,'gt',rel=='>'?`Is ${t} > ${val} ? Yes. The array is sorted, so ${t} can only be on the RIGHT side.`:`Is ${t} > ${val} ? No. Since it is not equal either, ${t} must be smaller, so it can only be on the LEFT side.`,{cmp:{rel}});
+  const ol=low,oh=high;
+  if(rel=='>'){low=mid+1;P(13,'move',`Throw away indices ${ol} to ${mid}. low = mid + 1 = ${low}. Only ${high-low+1} number${high-low?'s':''} left to check.`,{cmp:{rel}});}
+  else{high=mid-1;P(15,'move',`Throw away indices ${mid} to ${oh}. high = mid - 1 = ${high}. Only ${Math.max(0,high-low+1)} number${high-low?'s':''} left to check.`,{cmp:{rel}});}
+  if(mode=='bug'){P(18,'bugret',`return -1 runs here, INSIDE the loop, after just one round. The search stops before it even looks at ${low}..${high}.`,{result:-1,bug:true});return st;}
+ }
+ P(19,'nf',`return -1 sits outside the loop, so it runs only now. ${t} is not in the array.`,{result:-1});
+ return st;
+}
+
+function buildArr(){
+ $('arr').style.width=(S.arr.length+2)*62+'px';
+ $('arr').innerHTML='<div id=band></div>'+S.arr.map((v,i)=>`<div class=cw id=c${i} style="left:${X(i)}px"><div class=cell>${v}</div><small>${i}</small></div>`).join('')+['low','mid','high'].map(k=>`<div class="pt ${k}" id=p${k}>${k.toUpperCase()}</div>`).join('');
+}
+function pt(k,i,row){const e=$('p'+k);if(i==null){e.style.opacity=0;return}e.style.opacity=1;e.style.left=X(i)+'px';e.style.top=k=='mid'?'4px':(122+row*30)+'px';}
+
+function render(){
+ const st=S.steps[S.cur],pv=S.steps[S.cur-1]||{},last=S.steps.length-1;
+ const showMid=st.mid!=null&&!['while','init'].includes(st.phase);
+ S.arr.forEach((v,i)=>{let c='cw';if(st.low!=null&&(i<st.low||i>st.high))c+=' off';
+  if(showMid&&i==st.mid)c+=st.phase=='found'?' hit':' mid';$('c'+i).className=c;});
+ pt('low',st.low,0);pt('mid',showMid?st.mid:null,0);pt('high',st.high,st.high==st.low?1:0);
+ const b=$('band'),rem=st.low==null?0:Math.max(0,st.high-st.low+1);
+ if(st.low==null||!rem){b.style.opacity=0}else{b.style.opacity=1;b.style.left=X(st.low)-6+'px';b.style.width=rem*62-2+'px'}
+ $('rng').innerHTML=st.low==null?`${S.arr.length} numbers, all still possible`:rem?`Still possible: indices <b>${st.low}</b> to <b>${st.high}</b> (${rem} number${rem>1?'s':''})`:'No numbers left';
+ const V=[['low',st.low],['mid',st.mid],['high',st.high],['target',st.t],['value',st.val],['comparisons',st.cmps]],PV={low:pv.low,mid:pv.mid,high:pv.high,target:pv.t,value:pv.val,comparisons:pv.cmps};
+ $('vars').innerHTML=V.map(([k,v])=>`<span class="chip${S.cur&&PV[k]!==v?' ch':''}">${k} = <b>${v==null?'-':v}</b></span>`).join('');
+ let m=null;for(let k=S.cur;k>=0&&!m;k--)if(S.steps[k].math)m=S.steps[k].math;
+ $('math').innerHTML=m?`mid = (low + high) / 2 = (${m[0]} + ${m[1]}) / 2 = ${m[2]} / 2 = <b>${m[3]}</b>`:'mid is calculated each round as the average of low and high.';
+ const sc=$('story');sc.className='story '+(st.phase=='found'?'good':st.phase=='bugret'?'bad':'');
+ sc.innerHTML=`<span class=t>${TITLE[st.phase]}</span><p>${st.msg}</p>`;
+ const cn=$('cn');cn.textContent=st.cmps;if(st.cmps!=S.lastC){cn.classList.remove('bump');void cn.offsetWidth;cn.classList.add('bump')}S.lastC=st.cmps;
+ let lg='',k2=0;S.steps.forEach((s,k)=>{if(k<=S.cur&&(s.phase=='eq'||s.phase=='gt')){const c=S.steps[k-1].cmps;lg+=s.phase=='eq'?`<li>#${c} &nbsp;${s.t} == ${s.val} ? ${s.cmp.rel=='=='?'<b>true</b> &#10003;':'false'}</li>`:`<li>#${c} &nbsp;${s.t} &gt; ${s.val} ? ${s.cmp.rel=='>'?'true &rarr; go RIGHT':'false &rarr; go LEFT'}</li>`}});
+ $('log').innerHTML=lg||'<li class=dim>No comparisons yet.</li>';
+ const bad=BADLN[S.mode];
+ $('code').innerHTML=`<h3>${S.mode=='bug'?'Buggy version':'Correct version'}</h3>`+CODE[S.mode].map((t,i)=>`<div class="ln${i==st.line?' on':''}${i==bad?(S.mode=='bug'?' bad':' good'):''}"><i>${i+1}</i>${t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\b(int|while|if|else|return)\b/g,'<span class=k>$1</span>').replace(/(\/\/.*)$/,'<span class=c>$1</span>')}</div>`).join('');
+ $('nxt').disabled=S.cur>=last;$('prv').disabled=S.cur==0;$('scr').max=last;$('scr').value=S.cur;$('cnt').textContent=`${S.cur+1} / ${last+1}`;
+ const r=$('res');
+ if(S.cur<last){r.className='card res';r.innerHTML='<span class=dim>The result appears when the search ends.</span>';return}
+ const idx=S.arr.indexOf(S.t),lin=idx>=0?idx+1:S.arr.length;
+ if(st.bug&&idx>=0){r.className='card res bug';r.innerHTML=`<h2 style="color:var(--red)">&#9888; Bug detected</h2>Expected <b>${idx}</b>, got <b>-1</b>. The function returned -1 too early because <code>return -1</code> is inside the loop.`}
+ else if(st.result>=0){r.className='card res ok';r.innerHTML=`<h2 style="color:var(--grn)">&#10003; Found at index ${st.result}</h2>Counted <b>${st.cmps}</b> comparisons (every <code>==</code> and every <code>&gt;</code> counts). A left-to-right scan needs <b>${lin}</b> here, but its cost grows with the array size while binary search barely grows.`}
+ else{r.className='card res';r.innerHTML=`<h2>&#10005; Not found</h2>Result: <b>-1</b> after <b>${st.cmps}</b> comparisons. A left-to-right scan needs <b>${S.arr.length}</b>.${st.bug?'<br><span class=dim>-1 is right here only by luck. Try a value that exists to expose the bug.</span>':''}`}
+}
+
+function parse(){
+ const a=$('inArr').value.split(/[,\s]+/).filter(Boolean).map(Number),t=parseInt($('inT').value);
+ if(!a.length||a.some(isNaN)||isNaN(t))return'Enter numbers separated by commas, and a number to search for.';
+ if(a.length>14)return'Please use at most 14 numbers.';
+ for(let i=1;i<a.length;i++)if(a[i]<a[i-1])return'Binary Search requires a sorted array.';
+ return{a,t};
+}
+function runIt(){
+ const p=parse();if(typeof p=='string'){$('warn').textContent='\u26A0 '+p;return}
+ $('warn').textContent='';stop();S.arr=p.a;S.t=p.t;S.steps=gen(S.arr,S.t,S.mode);S.cur=0;S.lastC=0;buildArr();render();
+}
+function stop(){clearInterval(S.timer);S.timer=null;$('ply').innerHTML='&#9654; Play'}
+function step(d){const n=S.cur+d;if(n<0||n>=S.steps.length)return false;S.cur=n;render();return n<S.steps.length-1}
+function play(){if(S.timer)return stop();if(S.cur>=S.steps.length-1){S.cur=0;render()}
+ $('ply').innerHTML='&#10074;&#10074; Pause';S.timer=setInterval(()=>{if(!step(1))stop()},[3200,2400,1700,1100,650][$('spd').value-1])}
+$('run').onclick=runIt;
+document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x==b));runIt()});
+document.querySelectorAll('.pre').forEach(b=>b.onclick=()=>{$('inArr').value=DEF;$('inT').value=b.dataset.t;runIt()});
+$('prv').onclick=()=>{stop();step(-1)};$('nxt').onclick=()=>{stop();step(1)};$('ply').onclick=play;
+$('rs').onclick=()=>{stop();S.cur=0;render()};
+$('scr').oninput=e=>{stop();S.cur=+e.target.value;render()};
+document.addEventListener('keydown',e=>{if(['INPUT'].includes(e.target.tagName)&&e.target.type!='range')return;
+ if(e.key=='ArrowRight'){e.preventDefault();stop();step(1)}if(e.key=='ArrowLeft'){stop();step(-1)}if(e.key==' '){e.preventDefault();play()}});
+runIt();
+</script>
+</body>
+</html>

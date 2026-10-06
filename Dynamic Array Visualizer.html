@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dynamic Array Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#14213d;--mute:#5d6b86;--line:#d8deea;--acc:#2f6bff;--amb:#f5a524;--grn:#12a36b;--red:#e5484d;--code:#0f1729;--codeink:#c9d4ee;--cell:#e8eefc;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1020;--card:#141b30;--ink:#e6ebf8;--mute:#8d9bbb;--line:#27304b;--acc:#5b8cff;--amb:#ffb938;--grn:#2ed39a;--red:#ff6b70;--code:#080c18;--codeink:#c9d4ee;--cell:#1c2745}}
+:root[data-theme="dark"]{--bg:#0b1020;--card:#141b30;--ink:#e6ebf8;--mute:#8d9bbb;--line:#27304b;--acc:#5b8cff;--amb:#ffb938;--grn:#2ed39a;--red:#ff6b70;--code:#080c18;--codeink:#c9d4ee;--cell:#1c2745}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Space Grotesk",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:0}
+.sub{color:var(--mute);margin:2px 0 16px}
+.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+button,select,input{font:inherit;color:var(--ink)}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 14px}
+button:hover{border-color:var(--acc)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.tab.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.bar label{color:var(--mute);font-size:13px}
+input[type=number]{width:70px;padding:7px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.op{background:var(--ink);color:var(--bg);border-color:var(--ink);font-family:"JetBrains Mono",monospace;font-size:13px}
+.opb.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.ctl{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.ctl input[type=range]{flex:1;min-width:90px}
+.sep{width:1px;height:26px;background:var(--line)}
+body.fixed .dynonly,body.dyn .fixonly{display:none}
+.main{display:grid;grid-template-columns:1fr 380px;gap:14px}
+@media(max-width:900px){.main{grid-template-columns:1fr}}
+.mem{min-height:250px;overflow-x:auto}
+.blk{border:2px solid var(--line);border-radius:10px;padding:10px 12px 8px;margin-bottom:12px;transition:opacity .4s}
+.blk{position:relative;overflow:hidden}
+.blk.dead{border-color:var(--red);border-style:dashed;animation:flash .5s 3}
+.blk.dead::after{content:"delete[] data  -  memory freed";position:absolute;inset:0;display:grid;place-items:center;background:rgba(229,72,77,.16);color:var(--red);font:700 15px "JetBrains Mono",monospace}
+.blk.gone{animation:gone .9s forwards}
+.pt{position:absolute;top:-50px;left:0;white-space:nowrap;font:700 11px "JetBrains Mono",monospace;font-style:normal;padding:3px 8px;border-radius:6px;color:#fff;background:var(--pc);animation:pop .35s}
+.pt::after{content:"";position:absolute;left:19px;bottom:-6px;border:6px solid transparent;border-bottom:0;border-top-color:var(--pc)}
+.pt.ins{--pc:var(--acc)}.pt.srch{--pc:var(--amb);color:#201400}.pt.found{--pc:var(--grn)}.pt.del{--pc:var(--red)}
+.fullbar{background:var(--red);color:#fff;border-radius:8px;padding:7px 10px;font:700 13px "JetBrains Mono",monospace;animation:pop .4s}
+@keyframes flash{50%{background:rgba(229,72,77,.3)}}
+@keyframes gone{from{max-height:230px;opacity:1}to{max-height:0;opacity:0;padding-top:0;padding-bottom:0;margin-bottom:0;border-width:0}}
+.cell.del{border-color:var(--red);background:rgba(229,72,77,.2);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.12)}}
+.cell.poof{border-color:var(--red)}
+.cell.poof::after{content:"";position:absolute;inset:-2px;border-radius:8px;border:3px solid var(--red);animation:ring .9s forwards}
+.pf{position:absolute;inset:0;display:grid;place-items:center;color:var(--red);animation:poof 1s forwards}
+@keyframes poof{0%{transform:scale(1);opacity:1}30%{transform:scale(1.6) rotate(-12deg)}100%{transform:scale(.1) translateY(-28px) rotate(50deg);opacity:0;filter:blur(3px)}}
+@keyframes ring{from{transform:scale(1);opacity:1}to{transform:scale(2.4);opacity:0}}
+.bh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--mute);margin-bottom:8px}
+.ptr{background:var(--acc);color:#fff;padding:2px 8px;border-radius:99px;font-weight:600}
+.ptr.t{background:var(--amb);color:#201400}
+.full{background:var(--red);color:#fff;padding:2px 8px;border-radius:99px;font-weight:600}
+.cells{display:flex;gap:6px;padding:54px 0 38px;position:relative}.arw{position:absolute;left:0;bottom:0;pointer-events:none;animation:pop .4s}
+.cw{display:flex;flex-direction:column;align-items:center;position:relative}
+.cw small{color:var(--mute);font:11px "JetBrains Mono",monospace;margin-top:3px}
+.sz{position:absolute;top:-16px;font:600 10px "JetBrains Mono",monospace;color:var(--acc);font-style:normal}
+.cell{position:relative;width:50px;height:46px;border:2px solid var(--line);border-radius:8px;display:grid;place-items:center;font:600 16px "JetBrains Mono",monospace;background:transparent;transition:background .3s,border-color .3s}
+.cell.used{background:var(--cell);border-color:var(--acc)}
+.cell.ghost{opacity:.4;border-style:dashed}
+.cell.src{background:var(--amb);border-color:var(--amb);color:#201400}
+.cell.dst{background:var(--acc);border-color:var(--acc);color:#fff;animation:pop .45s}
+.cell.ok{background:var(--grn);border-color:var(--grn);color:#fff;animation:pop .45s}
+.cell.err{background:var(--red);border-color:var(--red);color:#fff;animation:shake .4s}
+.cell.free{border:2px dashed var(--acc);background:transparent}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.v{font:13px "JetBrains Mono",monospace;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 9px}
+.v b{color:var(--acc)}
+.say{border-left:5px solid var(--acc);margin-top:10px;font-size:16px;min-height:78px}
+.say.err{border-color:var(--red)}.say.ok{border-color:var(--grn)}
+.say small{display:block;color:var(--mute);margin-bottom:4px}
+.out{font:13px "JetBrains Mono",monospace;margin-top:8px;color:var(--mute);min-height:20px}
+.out b{color:var(--ink)}
+.code{background:var(--code);border-radius:12px;padding:10px 0;overflow-x:auto;font:13px/1.75 "JetBrains Mono",monospace;color:var(--codeink)}
+.code h3{margin:0 14px 6px;font:600 12px "Space Grotesk",sans-serif;color:#7f8db0}
+.ln{display:flex;white-space:pre;padding:0 14px;border-left:4px solid transparent}
+.ln i{width:26px;color:#51608a;font-style:normal;flex:none}
+.ln.on{background:rgba(91,140,255,.22);border-left-color:#ffb938;color:#fff}
+.k{color:#ff9bd0}.c{color:#6c7ba3}.s{color:#9be3b0}
+.go{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.ctl .cnt{margin-left:auto;color:var(--mute);font:13px "JetBrains Mono",monospace}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="fixed">
+<div class="wrap">
+<h1>Dynamic Array Visualizer</h1>
+<p class="sub">Pick an operation, press Start, then Next. The memory and the code move together. Keys: &larr; &rarr; step, Space plays.</p>
+<div class="tabs">
+<button class="tab on" data-t="fixed">1. Fixed array</button>
+<button class="tab" data-t="dyn">2. Dynamic array</button>
+</div>
+
+<div class="card bar">
+<span class="fixonly"><label>value </label><input id="vf" type="number" value="10"></span>
+<span class="dynonly" id="ops"><label>Operation: </label>
+<button class="opb on" data-op="add">add</button><button class="opb" data-op="insert">insert</button><button class="opb" data-op="remove">remove</button><button class="opb" data-op="get">get</button><button class="opb" data-op="find">find</button></span>
+<span class="dynonly"><span id="gix"><label>index </label><input id="ix" type="number" value="1"></span> <span id="gvl"><label>value </label><input id="vl" type="number" value="99"></span></span>
+<span class="sep dynonly"></span>
+<span class="dynonly"><label>start capacity </label><select id="cp"><option>2</option><option>4</option></select></span>
+<button id="rst">Reset</button>
+</div>
+<div class="card ctl">
+<button id="prv">&#9664; Back</button>
+<button id="nxt" class="go"></button>
+<button id="ply">&#9654; Auto-play</button>
+<input id="scr" type="range" min="0" max="0" value="0" aria-label="Timeline">
+<label>speed <input id="spd" type="range" min="1" max="5" value="3"></label>
+<span class="cnt" id="cnt"></span>
+</div>
+<div class="main">
+<div>
+<div class="card mem" id="mem"></div>
+<div class="card say" id="say"></div>
+<div class="out" id="out"></div>
+</div>
+<div class="code" id="code"></div>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const ADDR=['0x1000','0x2A40','0x3F80','0x5C20','0x7D00','0x9B10'];
+const CODE={
+fixed:['int arr[4];      // size fixed forever','int count = 0;','','void add(int value) {','  if (count == 4) {','    cout << "No space!";','    return;','  }','  arr[count] = value;','  count++;','}'],
+add:['void add(int value) {','  if (size == capacity) {','    int* newData = new int[capacity * 2];','    for (int i = 0; i < size; i++)','      newData[i] = data[i];','    delete[] data;','    data = newData;','    capacity *= 2;','  }','  data[size] = value;','  size++;','}'],
+insert:['void insert(int index, int value) {','  if (index < 0 || index > size) {','    cout << "Invalid index"; return;','  }','  if (size == capacity) {','    // same 5 resize steps as add()','    resize();','  }','  for (int i = size; i > index; i--)','    data[i] = data[i - 1];','  data[index] = value;','  size++;','}'],
+remove:['void remove(int index) {','  if (index < 0 || index >= size) {','    cout << "Invalid index"; return;','  }','  for (int i = index; i < size - 1; i++)','    data[i] = data[i + 1];','  size--;','}'],
+get:['int get(int index) {','  if (index < 0 || index >= size) {','    cout << "Invalid index"; return -1;','  }','  return data[index];','}'],
+find:['int find(int value) {','  for (int i = 0; i < size; i++)','    if (data[i] == value)','      return i;','  return -1;','}']};
+const mkS=(mode,cap)=>({mode,cap,size:0,blocks:[{id:0,addr:ADDR[0],cells:Array(cap).fill(null)}],ptr:0,tmp:null,n:1});
+let T='fixed',ST={fixed:mkS('fixed',4),dyn:mkS('dyn',2)},OP={fixed:'fadd',dyn:'add'},FR=[],cur=0,timer=null;
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+function run(op,a,b){
+ stop();
+ const s=ST[T],fr=[];
+ let P=null;
+ const F=(line,msg,o={})=>fr.push({op,line,msg,p:P&&{...P},s:clone(s),m:o.m||{},v:o.v||{},t:o.t||'',out:o.out,a:o.a});
+ const cb=()=>s.blocks.find(x=>x.id==s.ptr);
+ const k=(id,i)=>id+':'+i;
+ function resize(L){
+  const old=cb(),nb={id:s.n,addr:ADDR[s.n%6],cells:Array(s.cap*2).fill(null)};
+  s.n++;s.blocks.push(nb);s.tmp=nb.id;
+  F(L[0],`Array is full. new int[${s.cap*2}] reserves a bigger block on the heap at ${nb.addr}. The temporary pointer newData points to it.`);
+  F(L[1],`Now copy the old elements one by one (i from 0 to size-1).`);
+  for(let i=0;i<s.size;i++){nb.cells[i]=old.cells[i];F(L[2],`newData[${i}] = data[${i}] : copy ${old.cells[i]} into the new block.`,{m:{[k(old.id,i)]:'src',[k(nb.id,i)]:'dst'},v:{i}});}
+  const mk={};old.cells.forEach((v,i)=>{if(v!==null)mk[k(old.id,i)]='poof:'+v});old.cells=old.cells.map(()=>null);old.dead=true;
+  F(L[3],`delete[] data destroys the OLD block. Every value in it is wiped out.`,{m:mk,t:'err'});
+  old.gone=true;F(L[3],`The old memory is gone for good. Forget this line and you get a memory leak.`,{t:'err'});
+  s.blocks=s.blocks.filter(x=>x!==old);s.ptr=nb.id;s.tmp=null;
+  F(L[4],`data = newData : the pointer data now points to the new block at ${nb.addr}.`);
+  s.cap*=2;F(L[5],`capacity *= 2 : capacity is now ${s.cap}. Resize finished, there is free space.`,{t:'ok'});
+ }
+ if(op=='fadd'){
+  F(3,`add(${a}) is called on a fixed array. count = ${s.size}.`);
+  if(s.size==4){F(4,`count == 4 ? Yes. Every slot is taken.`,{t:'err'});F(5,`No space! A fixed array can't grow, its size was decided at compile time.`,{t:'err',out:'No space!',m:{'0:3':'err'}});F(6,`return : the value ${a} is rejected.`,{t:'err'});}
+  else{F(4,`count == 4 ? No. There is still room.`);const c=cb();c.cells[s.size]=a;F(8,`arr[${s.size}] = ${a} : write the value into the next free slot.`,{m:{[k(0,s.size)]:'dst'}});s.size++;F(9,s.size==4?`count++ : count is now 4. All 4 slots are used. The array is FULL!`:`count++ : count is now ${s.size}.`,{t:s.size==4?'err':'ok'});}
+ }
+ if(op=='add'){
+  F(0,`add(${a}) is called. size = ${s.size}, capacity = ${s.cap}.`);
+  if(s.size==s.cap){F(1,`size == capacity ? Yes! The array is full, so we must grow before adding.`,{t:'err'});resize([2,3,4,5,6,7]);F(8,`End of the if block. We are ready to add.`);}
+  else F(1,`size == capacity ? No (${s.size} != ${s.cap}). Skip the resize.`);
+  cb().cells[s.size]=a;F(9,`data[${s.size}] = ${a} : write at index size. One write only, so this is O(1).`,{m:{[k(s.ptr,s.size)]:'dst'}});
+  s.size++;F(10,`size++ : size is now ${s.size}. Done.`,{t:'ok'});
+ }
+ if(op=='insert'){P={i:a,label:'insert at '+a,cls:'ins'};
+  F(0,`insert(${a}, ${b}) is called. size = ${s.size}, capacity = ${s.cap}.`,{v:{index:a,value:b}});
+  if(a<0||a>s.size){F(1,`index < 0 || index > size ? Yes. Valid indices are 0 to ${s.size}.`,{t:'err'});F(2,`Invalid index! Nothing was changed.`,{t:'err',out:'Invalid index'});return end();}
+  F(1,`Is ${a} < 0 or > ${s.size}? No. The index is valid.`);
+  if(s.size==s.cap){F(4,`size == capacity ? Yes. We need to resize first.`,{t:'err'});resize([6,6,6,6,6,6]);}
+  else F(4,`size == capacity ? No. Enough room.`);
+  const c=cb();
+  for(let j=s.size;j>a;j--){
+   F(8,`i = ${j} : is ${j} > index (${a}) ? Yes, so shift data[${j-1}] one slot right.`,{v:{i:j,index:a}});
+   const val=c.cells[j-1];F(9,`Pick up ${val} from data[${j-1}] and carry it to data[${j}]. We start from the END so nothing is overwritten.`,{m:{[k(c.id,j-1)]:'src',[k(c.id,j)]:'free'},a:[c.id,j-1,j],v:{i:j,index:a}});
+   c.cells[j]=val;c.cells[j-1]=null;F(9,`Placed ${val} in data[${j}]. data[${j-1}] is now empty.`,{m:{[k(c.id,j)]:'dst',[k(c.id,j-1)]:'free'},v:{i:j,index:a}});
+  }
+  F(8,s.size==a?`index == size : the loop doesn't run. Nothing to shift (like add).`:`i = ${a} : is ${a} > ${a} ? No, loop ends. Slot ${a} is free (its old value was already copied right).`,{m:{[k(c.id,a)]:'free'},v:{i:a,index:a}});
+  c.cells[a]=b;F(10,`data[${a}] = ${b} : write the new value into the freed slot.`,{m:{[k(c.id,a)]:'ok'}});
+  s.size++;F(11,`size++ : size is now ${s.size}. Insert done.`,{t:'ok'});
+ }
+ if(op=='remove'){P={i:a,label:'delete at '+a,cls:'del'};
+  F(0,`remove(${a}) is called. size = ${s.size}.`,{v:{index:a}});
+  if(a<0||a>=s.size){F(1,s.size==0?`size is 0. The array is empty, there is nothing to remove.`:`index < 0 || index >= size ? Yes. Valid indices are 0 to ${s.size-1}.`,{t:'err'});F(2,`Invalid index! Nothing was changed.`,{t:'err',out:'Invalid index'});return end();}
+  F(1,`Is ${a} out of range? No. The index is valid.`);
+  const c=cb();
+  const dv=c.cells[a];
+  F(4,`i starts at index ${a}. This slot holds ${dv}, the value we want to delete.`,{m:{[k(c.id,a)]:'del'},v:{i:a,index:a}});
+  c.cells[a]=null;F(4,`Erase ${dv} from data[${a}]. The slot is now an empty hole that the next values will fill.`,{m:{[k(c.id,a)]:'poof:'+dv},t:'err',v:{i:a,index:a}});
+  for(let j=a;j<s.size-1;j++){
+   F(4,`i = ${j} : is ${j} < size-1 (${s.size-1}) ? Yes, fill the hole at data[${j}].`,{v:{i:j,index:a}});
+   const val=c.cells[j+1];F(5,`Pick up ${val} from data[${j+1}] and carry it LEFT to data[${j}].`,{m:{[k(c.id,j+1)]:'src',[k(c.id,j)]:'free'},a:[c.id,j+1,j],v:{i:j,index:a}});
+   c.cells[j]=val;c.cells[j+1]=null;F(5,`Placed ${val} in data[${j}]. data[${j+1}] is now the empty hole.`,{m:{[k(c.id,j)]:'dst',[k(c.id,j+1)]:'free'},v:{i:j,index:a}});
+  }
+  F(4,`Loop ends: no more elements to pull left. The hole moved to the end of the data.`,{v:{index:a}});
+  s.size--;F(6,`size-- : size is now ${s.size}. The empty hole is now outside size. Delete done.`,{t:'ok'});
+ }
+ if(op=='get'){P={i:a,label:'get at '+a,cls:'srch'};
+  F(0,`get(${a}) is called. size = ${s.size}.`,{v:{index:a}});
+  if(a<0||a>=s.size){F(1,`index < 0 || index >= size ? Yes. Out of range.`,{t:'err'});F(2,`Invalid index! Return -1 instead of reading garbage memory.`,{t:'err',out:'Invalid index, return -1'});}
+  else{F(1,`Is ${a} out of range? No.`);F(4,`return data[${a}] = ${cb().cells[a]}`,{t:'ok',m:{[k(s.ptr,a)]:'ok'},out:'return '+cb().cells[a]});}
+ }
+ if(op=='find'){
+  F(0,`find(${a}) is called. We scan from left to right.`,{v:{value:a}});
+  const c=cb();
+  if(s.size==0)F(1,`size = 0 : the loop body never runs.`);
+  for(let i=0;i<s.size;i++){
+   P={i,label:'i = '+i,cls:'srch'};
+   F(1,`i = ${i} : is ${i} < size (${s.size}) ? Yes. The cursor moves to data[${i}].`,{v:{i,value:a}});
+   if(c.cells[i]==a){P.cls='found';F(2,`data[${i}] == ${a} ? Yes! Found it.`,{m:{[k(c.id,i)]:'ok'},v:{i,value:a}});F(3,`return ${i} : the value ${a} is at index ${i}.`,{t:'ok',m:{[k(c.id,i)]:'ok'},out:'return '+i,v:{i,value:a}});return end();}
+   F(2,`data[${i}] == ${a} ? ${c.cells[i]} != ${a}. No match, the cursor moves on.`,{m:{[k(c.id,i)]:'src'},v:{i,value:a}});
+  }
+  P=null;
+  if(s.size>0)F(1,`i = ${s.size} : is ${s.size} < size (${s.size}) ? No. The loop ends.`);
+  F(4,`Reached the end without a match. Return -1.`,{t:'err',out:'return -1'});
+ }
+ end();
+ function end(){FR=fr;cur=0;draw();}
+}
+
+function hl(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/(\/\/.*$)/,'<span class=c>$1</span>').replace(/\b(void|int|if|for|return|new|delete)\b/g,'<span class=k>$1</span>').replace(/("[^"]*")/g,'<span class=s>$1</span>');}
+function cells(b,f){
+ const s=f.s,live=b.id==s.ptr,n=b.cells.length;
+ let h=b.cells.map((v,i)=>{const m=f.m[b.id+':'+i]||'',pt=f.p&&live&&f.p.i==i?`<em class="pt ${f.p.cls}">${f.p.label}</em>`:'';let c='cell'+(v!==null?' used':''),x=v??'';
+  if(m.startsWith('poof')){c+=' poof';x=`<span class=pf>${m.slice(5)}</span>`}else if(m)c+=' '+m;
+  return `<div class=cw>${live&&i==s.size&&!b.dead?'<i class=sz>size</i>':''}${pt}<div class="${c}">${x}</div><small>${i}</small></div>`}).join('');
+ if(f.a&&f.a[0]==b.id){const x1=25+56*f.a[1],x2=25+56*f.a[2];h+=`<svg class=arw width=${n*56} height=36><path d="M${x1} 4C${x1} 32 ${x2} 32 ${x2} 13" fill=none stroke=#12a36b stroke-width=3.5 stroke-linecap=round /><polygon points="${x2},3 ${x2-8},15 ${x2+8},15" fill=#12a36b /></svg>`}
+ return h;}
+function draw(){
+ const f=FR[cur]||{op:OP[T],line:-1,s:ST[T],m:{},v:{},msg:T=='fixed'?(ST.fixed.size==4?'The memory is FULL. All 4 slots are taken and a fixed array cannot grow. Now open the Dynamic array tab to see how it solves this.':'A fixed array reserves its slots once. Press Start add() and keep adding until it fills up.'):'Pick an operation above. The array lives on the heap and data points to it.',t:T=='fixed'&&ST.fixed.size==4?'err':''};
+ const s=f.s;
+ $('mem').innerHTML=s.blocks.map(b=>{
+  const live=b.id==s.ptr,fixed=s.mode=='fixed';
+  const head=fixed?`<span>Stack &middot; int arr[4] &middot; fixed size</span>`:`${live?'<span class=ptr>data &rarr;</span>':''}${s.tmp==b.id?'<span class="ptr t">newData &rarr;</span>':''}<span>heap block @${b.addr} &middot; ${b.cells.length} slots</span>`;
+  return `<div class="blk ${b.dead?'dead':''} ${b.gone?'gone':''}"><div class=bh>${head}${live&&s.size==b.cells.length?'<span class=full>FULL</span>':''}</div><div class=cells>${cells(b,f)}</div>${fixed&&s.size==b.cells.length?'<div class=fullbar>MEMORY FULL : all 4 slots are used, no space left</div>':''}</div>`}).join('')
+  +`<div class=vars><span class=v>size = <b>${s.size}</b></span><span class=v>${s.mode=='fixed'?'capacity = <b>4</b>':'capacity = <b>'+s.cap+'</b>'}</span>${Object.entries(f.v).map(([a,b])=>`<span class=v>${a} = <b>${b}</b></span>`).join('')}</div>`;
+ const lines=CODE[f.op=='fadd'?'fixed':f.op]||CODE.add;
+ $('code').innerHTML=`<h3>${T=='fixed'?'fixed array':f.op+'()'} &middot; line-by-line trace</h3>`+lines.map((t,i)=>`<div class="ln${i==f.line?' on':''}"><i>${i+1}</i>${hl(t)}</div>`).join('');
+ $('say').className='card say '+f.t;
+ $('say').innerHTML=`<small>${FR.length?'What is happening':'Ready'}</small>${f.msg}`;
+ const o=FR.slice(0,cur+1).map(x=>x.out).filter(Boolean).pop();
+ $('out').innerHTML=o?`Console output: <b>${o}</b>`:'';
+ $('cnt').textContent=FR.length?`Step ${cur+1} / ${FR.length}`:'';
+ const last=FR.length-1,nm=OP[T]=='fadd'?'add':OP[T];
+ $('prv').disabled=!FR.length||cur==0;
+ $('nxt').innerHTML=!FR.length?`&#9654; Start ${nm}()`:cur>=last?`&#8635; Run ${nm}() again`:'Next step &#9654;';
+ $('scr').max=Math.max(0,last);$('scr').value=cur;$('scr').disabled=!FR.length;
+}
+function go(d){cur=Math.max(0,Math.min(FR.length-1,cur+d));draw();if(cur>=FR.length-1)stop();}
+function stop(){clearInterval(timer);timer=null;$('ply').innerHTML='&#9654; Auto-play';}
+function start(){const o=OP[T];if(o=='fadd')run(o,num('vf',1));else if(o=='add')run(o,num('vl',1));else if(o=='insert')run(o,num('ix',0),num('vl',1));else if(o=='find')run(o,num('vl',1));else run(o,num('ix',0));}
+function primary(){stop();if(!FR.length||cur>=FR.length-1)start();else go(1);}
+function play(){if(timer)return stop();if(!FR.length||cur>=FR.length-1)start();$('ply').innerHTML='&#10074;&#10074; Pause';timer=setInterval(()=>go(1),[1800,1300,900,550,300][$('spd').value-1]);}
+function pick(o){OP[T]=o;stop();FR=[];cur=0;document.querySelectorAll('.opb').forEach(x=>x.classList.toggle('on',x.dataset.op==o));showIn(o);draw();}
+function showIn(o){$('gix').style.display=['insert','remove','get'].includes(o)?'':'none';$('gvl').style.display=['add','insert','find'].includes(o)?'':'none';}
+function reset(){stop();ST[T]=T=='fixed'?mkS('fixed',4):mkS('dyn',+$('cp').value);FR=[];cur=0;draw();}
+const num=(id,d)=>{const v=parseInt($(id).value);return isNaN(v)?d:v};
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{stop();T=b.dataset.t;document.body.className=T;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x==b));FR=[];cur=0;if(T=='dyn')pick(OP.dyn);else draw();});
+document.querySelectorAll('.opb').forEach(b=>b.onclick=()=>pick(b.dataset.op));
+$('rst').onclick=reset;$('cp').onchange=reset;
+$('prv').onclick=()=>{stop();go(-1)};$('nxt').onclick=primary;$('ply').onclick=play;
+$('scr').oninput=e=>{stop();cur=+e.target.value;draw();};
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT'].includes(e.target.tagName))return;if(e.key=='ArrowRight'){e.preventDefault();primary()}if(e.key=='ArrowLeft'){stop();go(-1)}if(e.key==' '){e.preventDefault();play()}});
+OP.dyn='add';showIn('add');draw();
+draw();
+</script>
+</body>
+</html>
