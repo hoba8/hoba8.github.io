@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f7fc">
-  <meta name="description" content="Explore interactive visual guides to binary search and dynamic arrays.">
+  <meta name="description" content="Explore interactive visual guides to binary search, dynamic arrays, and merge sort.">
   <title>Algo Studio — Interactive Visualizers</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -204,6 +204,8 @@
 
     .topic-search .topic-icon { color: var(--mint-ink); background: var(--mint); }
     .topic-array .topic-icon { color: var(--lavender-ink); background: var(--lavender); }
+    .topic-merge { --glow: #fff1df; }
+    .topic-merge .topic-icon { color: #b76a1c; background: #fff1df; }
     .topic-icon svg { width: 25px; height: 25px; }
 
     .topic-number {
@@ -352,6 +354,28 @@
           </div>
           <h2>Dynamic Array</h2>
           <p>See how arrays grow, shift, insert, and remove values as their capacity changes.</p>
+          <span class="topic-action">
+            Open visualizer
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6"></path>
+            </svg>
+          </span>
+        </a>
+
+        <a class="topic topic-merge" href="./Merge%20Sort%20Visualizer%20(2).html">
+          <div class="topic-top">
+            <span class="topic-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 4v5M12 9 6 15M12 9l6 6"></path>
+                <rect x="9" y="2" width="6" height="4" rx="1"></rect>
+                <rect x="3" y="15" width="6" height="6" rx="1"></rect>
+                <rect x="15" y="15" width="6" height="6" rx="1"></rect>
+              </svg>
+            </span>
+            <span class="topic-number">TOPIC 03</span>
+          </div>
+          <h2>Merge Sort</h2>
+          <p>Watch a list split into smaller parts, then merge back together in sorted order.</p>
           <span class="topic-action">
             Open visualizer
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Merge Sort Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#14213d;--mute:#5d6b86;--line:#d8deea;--acc:#2f6bff;--amb:#f5a524;--grn:#12a36b;--red:#e5484d;--code:#0f1729;--codeink:#c9d4ee;--cell:#e8eefc;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1020;--card:#141b30;--ink:#e6ebf8;--mute:#8d9bbb;--line:#27304b;--acc:#5b8cff;--amb:#ffb938;--grn:#2ed39a;--red:#ff6b70;--code:#080c18;--cell:#1c2745}}
+:root[data-theme="dark"]{--bg:#0b1020;--card:#141b30;--ink:#e6ebf8;--mute:#8d9bbb;--line:#27304b;--acc:#5b8cff;--amb:#ffb938;--grn:#2ed39a;--red:#ff6b70;--code:#080c18;--cell:#1c2745}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Space Grotesk",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:0}
+.sub{color:var(--mute);margin:2px 0 16px}
+button,input{font:inherit;color:var(--ink)}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 14px}
+button:hover:not(:disabled){border-color:var(--acc)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.bar label{color:var(--mute);font-size:13px}
+#ai{width:min(330px,100%);padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font:14px "JetBrains Mono",monospace}
+.ctl{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.ctl input[type=range]{flex:1;min-width:90px}
+.go{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.ctl .cnt{margin-left:auto;color:var(--mute);font:13px "JetBrains Mono",monospace}
+.main{display:grid;grid-template-columns:1fr 400px;gap:14px}
+@media(max-width:900px){.main{grid-template-columns:1fr}}
+.mem{min-height:250px;overflow-x:auto}
+.blk{border:2px solid var(--line);border-radius:10px;padding:10px 12px 8px;margin-bottom:12px}
+.bh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:12px "JetBrains Mono",monospace;color:var(--mute);margin-bottom:6px}
+.ptr{background:var(--acc);color:#fff;padding:2px 8px;border-radius:99px;font-weight:600}
+.ptr.t{background:var(--amb);color:#201400}
+.cells{display:flex;gap:6px;padding:40px 0 4px;position:relative}
+.cw{display:flex;flex-direction:column;align-items:center;position:relative}
+.cw small{color:var(--mute);font:11px "JetBrains Mono",monospace;margin-top:3px}
+.cell{width:50px;height:46px;border:2px solid var(--line);border-radius:8px;display:grid;place-items:center;font:600 16px "JetBrains Mono",monospace;transition:background .3s,border-color .3s}
+.cell.used{background:var(--cell);border-color:var(--acc)}
+.cell.ghost{opacity:.35;border-style:dashed}
+.cell.dn{background:rgba(18,163,107,.18);border-color:var(--grn)}
+.cell.lh{border-color:var(--amb)}
+.cell.rh{border-color:var(--acc)}
+.cell.src{background:var(--amb);border-color:var(--amb);color:#201400}
+.cell.dst{background:var(--acc);border-color:var(--acc);color:#fff;animation:pop .45s}
+.cell.ok{background:var(--grn);border-color:var(--grn);color:#fff;animation:pop .45s}
+.pt{position:absolute;top:-34px;white-space:nowrap;font:700 11px "JetBrains Mono",monospace;font-style:normal;padding:2px 8px;border-radius:6px;color:#fff;background:var(--pc);animation:pop .35s}
+.pt::after{content:"";position:absolute;left:50%;margin-left:-6px;bottom:-6px;border:6px solid transparent;border-bottom:0;border-top-color:var(--pc)}
+.pt.k{--pc:var(--acc)}.pt.i{--pc:var(--amb);color:#201400}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.v{font:13px "JetBrains Mono",monospace;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 9px}
+.v b{color:var(--acc)}
+.stk{font:12px "JetBrains Mono",monospace;color:var(--mute);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.stk span{background:var(--cell);color:var(--ink);border-radius:6px;padding:2px 8px}
+.stk span:last-child{outline:2px solid var(--amb)}
+.say{border-left:5px solid var(--acc);margin-top:10px;font-size:16px;min-height:78px}
+.say.err{border-color:var(--red)}.say.ok{border-color:var(--grn)}
+.say small{display:block;color:var(--mute);margin-bottom:4px}
+.out{font:13px "JetBrains Mono",monospace;margin-top:8px;color:var(--mute);min-height:20px}
+.out b{color:var(--ink)}
+.code{background:var(--code);border-radius:12px;padding:10px 0;overflow-x:auto;font:13px/1.75 "JetBrains Mono",monospace;color:var(--codeink);align-self:start;position:relative;max-height:calc(100vh - 40px);overflow:auto}
+.code h3{margin:0 14px 6px;font:600 12px "Space Grotesk",sans-serif;color:#7f8db0}
+.ln{display:flex;white-space:pre;padding:0 14px;border-left:4px solid transparent}
+.ln i{width:26px;color:#51608a;font-style:normal;flex:none}
+.ln.on{background:rgba(91,140,255,.22);border-left-color:#ffb938;color:#fff}
+.k{color:#ff9bd0}.c{color:#6c7ba3}
+.tree{margin-bottom:14px;overflow-x:auto}
+.tt{font:600 13px "Space Grotesk",sans-serif;margin-bottom:8px}
+.tt span{color:var(--mute);font-weight:400}
+.tw{position:relative;margin:0 auto}
+.tw svg{position:absolute;inset:0}
+.tn{position:absolute;transform:translateX(-50%);display:flex;gap:2px;padding:2px;border:2px solid var(--line);border-radius:8px;background:var(--card);transition:background .3s,border-color .3s,opacity .3s}
+.tc{width:28px;height:28px;display:grid;place-items:center;border:1px solid var(--line);border-radius:5px;font:600 13px "JetBrains Mono",monospace}
+.tn.un{opacity:.4;border-style:dashed}
+.tn.sn{border-color:var(--acc)}
+.tn.ac{border-color:var(--amb);background:rgba(245,165,36,.22)}
+.tn.mg{border-color:var(--grn);background:rgba(18,163,107,.18)}
+.lg{font-size:12px;color:var(--mute);margin-top:8px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Merge Sort Visualizer</h1>
+<p class="sub">Type an array, press Start, then Next. The memory and the code move together. Keys: &larr; &rarr; step, Space plays.</p>
+<div class="card bar">
+<label for="ai">array </label><input id="ai" type="text" value="8, 3, 5, 4, 7, 6, 1, 2">
+<button id="ld">Load</button><button id="rnd">Random</button>
+</div>
+<div class="card ctl">
+<button id="prv">&#9664; Back</button>
+<button id="nxt" class="go"></button>
+<button id="ply">&#9654; Auto-play</button>
+<input id="scr" type="range" min="0" max="0" value="0" aria-label="Timeline">
+<label>speed <input id="spd" type="range" min="1" max="5" value="3"></label>
+<span class="cnt" id="cnt"></span>
+</div>
+<div class="main">
+<div>
+<div class="card tree" id="tree"></div>
+<div class="card mem" id="mem"></div>
+<div class="card say" id="say"></div>
+<div class="out" id="out"></div>
+</div>
+<div class="code" id="code"></div>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const CODE=["#include <iostream>", "using namespace std;", "", "void merge(int arr[], int left, int mid, int right) {", "    int n1 = mid - left + 1;", "    int n2 = right - mid;", "", "    int* L = new int[n1];", "    int* R = new int[n2];", "", "    for (int i = 0; i < n1; i++)", "        L[i] = arr[left + i];", "", "    for (int j = 0; j < n2; j++)", "        R[j] = arr[mid + 1 + j];", "", "    int i = 0, j = 0, k = left;", "", "    while (i < n1 && j < n2) {", "        if (L[i] <= R[j])", "            arr[k++] = L[i++];", "        else", "            arr[k++] = R[j++];", "    }", "", "    while (i < n1)", "        arr[k++] = L[i++];", "", "    while (j < n2)", "        arr[k++] = R[j++];", "", "    delete[] L;", "    delete[] R;", "}", "", "void mergeSort(int arr[], int left, int right) {", "    if (left >= right)", "        return;", "", "    int mid = left + (right - left) / 2;", "", "    mergeSort(arr, left, mid);", "    mergeSort(arr, mid + 1, right);", "", "    merge(arr, left, mid, right);", "}", "", "int main() {", "    int arr[] = {8, 3, 5, 4, 7, 6, 1, 2};", "    int n = sizeof(arr) / sizeof(arr[0]);", "", "    mergeSort(arr, 0, n - 1);", "", "    for (int i = 0; i < n; i++)", "        cout << arr[i] << \" \";", "", "    return 0;", "}"];
+let A0=[8,3,5,4,7,6,1,2],FR=[],cur=0,timer=null;
+
+function build(){
+ stop();
+ const a=A0.slice(),n=a.length,fr=[],stack=['main()'],done=[],nst=[],seen=[];let c={},cn=0;
+ const F=(line,msg,t='',out)=>fr.push({line,msg,t,out,a:a.slice(),stack:stack.slice(),nd:nst[nst.length-1],seen:seen.slice(),done:done.map(d=>d.slice()),c:{...c,cn}});
+ function ms(l,r){
+  stack.push(`mergeSort(${l},${r})`);nst.push(l+'-'+r);seen.push(l+'-'+r);c={l,r};
+  F(35,`mergeSort(arr, ${l}, ${r}) is called on [${a.slice(l,r+1).join(', ')}].`);
+  if(l>=r){F(36,`left >= right ? Yes (${l} >= ${r}). One element is already sorted.`,'ok');F(37,`return to the caller.`,'ok');stack.pop();nst.pop();return}
+  F(36,`left >= right ? No. This range has ${r-l+1} elements, so split it.`);
+  const m=l+((r-l)>>1);c={l,r,m};
+  F(39,`mid = left + (right - left) / 2 = ${l} + (${r} - ${l}) / 2 = ${m}. Left half is [${l}..${m}], right half is [${m+1}..${r}].`);
+  F(41,`Sort the LEFT half first: mergeSort(arr, ${l}, ${m}).`);ms(l,m);
+  c={l,r,m};F(42,`Left half is sorted. Now sort the RIGHT half: mergeSort(arr, ${m+1}, ${r}).`);ms(m+1,r);
+  c={l,r,m};F(44,`Both halves are sorted. merge(arr, ${l}, ${m}, ${r}) will combine them.`,'ok');
+  merge(l,m,r);stack.pop();nst.pop();
+ }
+ function merge(l,m,r){
+  const n1=m-l+1,n2=r-m,L=a.slice(l,m+1),R=a.slice(m+1,r+1);
+  stack.push(`merge(${l},${m},${r})`);
+  c={l,r,m,n1};F(4,`n1 = mid - left + 1 = ${m} - ${l} + 1 = ${n1}. This is the size of the left half.`);
+  c={l,r,m,n1,n2};F(5,`n2 = right - mid = ${r} - ${m} = ${n2}. This is the size of the right half.`);
+  F(7,`int* L = new int[${n1}] : allocate a temporary array for the left half.`);
+  F(8,`int* R = new int[${n2}] : allocate a temporary array for the right half.`);
+  c={l,r,m,n1,n2,L};
+  F(11,`Loop i = 0..${n1-1}: L[i] = arr[left + i]. So L = [${L.join(', ')}].`);
+  c={l,r,m,n1,n2,L,R};
+  F(14,`Loop j = 0..${n2-1}: R[j] = arr[mid + 1 + j]. So R = [${R.join(', ')}]. We need copies because arr[${l}..${r}] is about to be overwritten.`);
+  let i=0,j=0,k=l;
+  const S=o=>{c={l,r,m,n1,n2,L,R,i,j,k,...o}};
+  S({});F(16,`i = 0, j = 0, k = ${l}. i walks over L, j walks over R, k is the write position in arr.`);
+  while(i<n1&&j<n2){
+   S({});F(18,`i < ${n1} && j < ${n2} ? Yes. Compare the front of L with the front of R.`);
+   const tl=L[i]<=R[j],v=tl?L[i]:R[j];
+   S({cmp:1});F(19,`L[${i}] <= R[${j}] ? ${L[i]} <= ${R[j]} : ${tl?'Yes':'No'}. ${v} is smaller, so it goes next.`);cn++;
+   a[k]=v;S({wr:k,from:tl?'L':'R'});
+   F(tl?20:22,`arr[${k}] = ${v} : write the smaller value, then k++ and ${tl?'i':'j'}++.`);
+   tl?i++:j++;k++;
+  }
+  S({});F(18,`i < ${n1} && j < ${n2} ? No (${i>=n1?'L':'R'} is empty). No more comparisons are needed.`);
+  F(25,`while (i < n1) ? ${i<n1?'Yes. L still has elements, copy them.':'No. L has nothing left.'}`);
+  while(i<n1){a[k]=L[i];S({wr:k,from:'L'});F(26,`Copy leftover L[${i}] = ${L[i]} into arr[${k}].`);i++;k++}
+  S({});F(28,`while (j < n2) ? ${j<n2?'Yes. R still has elements, copy them.':'No. R has nothing left.'}`);
+  while(j<n2){a[k]=R[j];S({wr:k,from:'R'});F(29,`Copy leftover R[${j}] = ${R[j]} into arr[${k}].`);j++;k++}
+  done.push([l,r]);
+  c={l,r,m,n1,n2,L,R};F(31,`delete[] L : free the temporary left array.`);
+  c={l,r,m,n1,n2,R};F(32,`delete[] R : free the temporary right array.`);
+  c={l,r,m};stack.pop();
+  F(33,`merge is finished. arr[${l}..${r}] = [${a.slice(l,r+1).join(', ')}] is now sorted.`,'ok');
+ }
+ F(48,`main() starts. arr = {${a.join(', ')}}.`);
+ F(49,`n = sizeof(arr) / sizeof(arr[0]) = ${n}.`);
+ F(51,`Call mergeSort(arr, 0, n - 1) = mergeSort(arr, 0, ${n-1}).`);
+ ms(0,n-1);c={};
+ F(53,`Back in main(). The loop prints every element of the sorted array.`);
+ F(54,`cout << arr[i] << " " for i = 0..${n-1}.`,'ok',a.join(' ')+' ');
+ F(56,`return 0. Done! The array is sorted using ${cn} comparisons. Merge sort always costs O(n log n): log n levels of splitting, and each level merges n elements.`,'ok');
+ FR=fr;cur=0;draw();
+}
+
+function hl(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\b(void|int|if|while|else|return|for|new|delete|using|namespace|sizeof)\b/g,'<span class=k>$1</span>')}
+function temp(name,arr,p,c){
+ const cls=name=='L'?'t':'';
+ const cs=arr.map((v,x)=>{
+  let q='cell used',pt='';
+  if(x<p)q+=' ghost';
+  if(x==p){if(c.wr!==undefined&&c.from==name)q+=' ok';else if(c.cmp)q+=' src';pt=`<em class="pt i">${name=='L'?'i':'j'}</em>`}
+  return `<div class=cw>${pt}<div class="${q}">${v}</div><small>${x}</small></div>`}).join('');
+ return `<div class=blk><div class=bh><span class="ptr ${cls}">${name}</span><span>temporary array &middot; ${arr.length} slots${p>=arr.length?' &middot; all used':''}</span></div><div class=cells>${cs}</div></div>`;
+}
+function treeHTML(f){
+ const n=A0.length,W=44,H=72,sn=f.seen||[],mset=(f.done||[]).map(d=>d.join('-')),mrg=f.line>=4&&f.line<=33&&!!f.nd,c=f.c||{};
+ const cx=(l,r)=>((l+r)/2+.5)*W;
+ const rec=(l,r,d)=>{const o={id:l+'-'+r,l,r,d,x:cx(l,r),h:0};if(l<r){const m=l+((r-l)>>1),A=rec(l,m,d+1),B=rec(m+1,r,d+1);o.kids=[A,B];o.h=1+Math.max(A.h,B.h)}return o};
+ const root=rec(0,n-1,0),mx=o=>o.kids?Math.max(...o.kids.map(mx)):o.d,md=mx(root);
+ const D=[],M=[],E=[];
+ const walk=(o,p)=>{
+  if(p)E.push({t:'d',x1:p.x,y1:p.d*H+36,x2:o.x,y2:o.d*H,id:o.id});
+  if(!o.kids){for(let r=o.d;r<=md;r++){D.push({o,r});if(r<md)E.push({t:'d',x1:o.x,y1:r*H+36,x2:o.x,y2:(r+1)*H,id:o.id})}return}
+  D.push({o,r:o.d});o.kids.forEach(k=>walk(k,o));M.push({o,r:md+o.h});
+  o.kids.forEach(k=>E.push({t:'m',x1:k.x,y1:(k.kids?md+k.h:md)*H+36,x2:o.x,y2:(md+o.h)*H,pid:o.id}));
+ };
+ walk(root,null);
+ const CL={m:'var(--mute)',l:'var(--line)',g:'var(--grn)',a:'var(--amb)'};
+ const mk=['m','l','g','a'].map(k=>`<marker id="mk${k}" viewBox="0 0 8 6" refX="7" refY="3" markerWidth="8" markerHeight="6" orient="auto"><path d="M0 0L8 3L0 6z" style="fill:${CL[k]}"/></marker>`).join('');
+ const paths=E.map(e=>{
+  const k=e.t=='d'?(sn.includes(e.id)?'m':'l'):(mset.includes(e.pid)?'g':(mrg&&f.nd==e.pid?'a':'l')),my=e.y1+(e.y2-e.y1)/2;
+  return `<path d="M${e.x1} ${e.y1}C${e.x1} ${my} ${e.x2} ${my} ${e.x2} ${e.y2-1}" fill="none" stroke-width="2" style="stroke:${CL[k]}" marker-end="url(#mk${k})"/>`}).join('');
+ const box=(cls,x,r,vals)=>`<div class="tn ${cls}" style="left:${x}px;top:${r*H}px">${vals.map(v=>`<span class=tc>${v}</span>`).join('')}</div>`;
+ const dn=D.map(({o,r})=>box(!mrg&&r==o.d&&o.id==f.nd?'ac':sn.includes(o.id)?'sn':'un',o.x,r,A0.slice(o.l,o.r+1))).join('');
+ const mn=M.map(({o,r})=>{
+  const mg=mset.includes(o.id),ac=!mg&&mrg&&f.nd==o.id,w=c.wr!==undefined?c.wr+1:(c.k!==undefined?c.k:o.l);
+  const vals=mg?f.a.slice(o.l,o.r+1):f.a.slice(o.l,o.r+1).map((v,i)=>ac&&o.l+i<w?v:'&middot;');
+  return box(mg?'mg':ac?'ac':'un',o.x,r,vals)}).join('');
+ const rows=md+root.h+1;
+ return `<div class=tt>Split &amp; merge tree <span>&middot; top half: splitting &darr; &middot; bottom half: merging &darr;</span></div><div class=tw style="width:${n*W}px;height:${rows*H-(H-36)}px"><svg width="${n*W}" height="${rows*H}"><defs>${mk}</defs>${paths}</svg>${dn}${mn}</div><div class=lg>Dashed = not reached yet &middot; Blue = split &middot; Orange = working now &middot; Green = merged (sorted)</div>`;
+}
+function draw(){
+ const f=FR[cur]||{line:-1,a:A0,stack:[],done:[],c:{},t:'',msg:'Type an array (up to 10 numbers) and press Start. Merge sort splits the array in half again and again until every piece has 1 element, then merges the pieces back together in sorted order.'};
+ const c=f.c,has=c.l!==undefined,inR=x=>has&&x>=c.l&&x<=c.r,dn=x=>f.done.some(d=>x>=d[0]&&x<=d[1]);
+ const main=f.a.map((v,x)=>{
+  let q='cell '+(!has||inR(x)?'used':'ghost');
+  if(dn(x))q+=' dn';
+  if(c.m!==undefined&&inR(x))q+=x<=c.m?' lh':' rh';
+  if(c.wr===x)q+=' dst';
+  const pt=c.k!==undefined&&c.k==x?`<em class="pt k">k</em>`:'';
+  return `<div class=cw>${pt}<div class="${q}">${v}</div><small>${x}</small></div>`}).join('');
+ let h=`<div class=blk><div class=bh><span class=ptr>a &rarr;</span><span>main array &middot; ${f.a.length} slots${has?` &middot; working on [${c.l}..${c.r}]`:''}</span></div><div class=cells>${main}</div></div>`;
+ if(c.L)h+=temp('L',c.L,c.i,c);if(c.R)h+=temp('R',c.R,c.j,c);
+ const vs=['l','m','r','n1','n2','i','j','k'].filter(x=>c[x]!==undefined).map(x=>`<span class=v>${({l:'left',m:'mid',r:'right'})[x]||x} = <b>${c[x]}</b></span>`).join('');
+ h+=`<div class=vars>${vs}<span class=v>comparisons = <b>${c.cn||0}</b></span></div><div class=stk>call stack: ${f.stack.length?f.stack.map(s=>`<span>${s}</span>`).join('&rsaquo;'):'(empty)'}</div>`;
+ $('mem').innerHTML=h;$('tree').innerHTML=treeHTML(f);
+ $('code').innerHTML='<h3>C++ code &middot; line-by-line trace</h3>'+CODE.map((t,i)=>i==48?'    int arr[] = {'+A0.join(', ')+'};':t).map((t,i)=>`<div class="ln${i==f.line?' on':''}"><i>${i+1}</i>${hl(t)}</div>`).join('');
+ {const cd=$('code'),on=cd.querySelector('.on');if(on)cd.scrollTop=Math.max(0,on.offsetTop-cd.clientHeight/2)}
+ $('say').className='card say '+f.t;
+ $('say').innerHTML=`<small>${FR.length?'What is happening':'Ready'}</small>${f.msg}`;
+ const o=FR.slice(0,cur+1).map(x=>x.out).filter(Boolean).pop();
+ $('out').innerHTML=o?`Console output: <b>${o}</b>`:'';
+ $('cnt').textContent=FR.length?`Step ${cur+1} / ${FR.length}`:'';
+ const last=FR.length-1;
+ $('prv').disabled=!FR.length||cur==0;
+ $('nxt').innerHTML=!FR.length?'&#9654; Start mergeSort()':cur>=last?'&#8635; Run again':'Next step &#9654;';
+ $('scr').max=Math.max(0,last);$('scr').value=cur;$('scr').disabled=!FR.length;
+}
+function go(d){cur=Math.max(0,Math.min(FR.length-1,cur+d));draw();if(cur>=FR.length-1)stop()}
+function stop(){clearInterval(timer);timer=null;$('ply').innerHTML='&#9654; Auto-play'}
+function primary(){stop();if(!FR.length||cur>=FR.length-1)build();else go(1)}
+function play(){if(timer)return stop();if(!FR.length||cur>=FR.length-1)build();$('ply').innerHTML='&#10074;&#10074; Pause';timer=setInterval(()=>go(1),[1800,1300,900,550,300][$('spd').value-1])}
+function load(){
+ stop();const m=($('ai').value.match(/-?\d{1,3}/g)||[]).map(Number).slice(0,10);
+ A0=m.length>=2?m:[8,3,5,4,7,6,1,2];$('ai').value=A0.join(', ');FR=[];cur=0;draw();
+}
+function rand(){const n=5+Math.floor(Math.random()*4);$('ai').value=Array.from({length:n},()=>1+Math.floor(Math.random()*99)).join(', ');load()}
+$('ld').onclick=load;$('rnd').onclick=rand;
+$('ai').onkeydown=e=>{if(e.key=='Enter')load()};
+$('prv').onclick=()=>{stop();go(-1)};$('nxt').onclick=primary;$('ply').onclick=play;
+$('scr').oninput=e=>{stop();cur=+e.target.value;draw()};
+document.addEventListener('keydown',e=>{if(e.target.tagName=='INPUT'&&e.target.type!='range')return;if(e.key=='ArrowRight'){e.preventDefault();primary()}if(e.key=='ArrowLeft'){stop();go(-1)}if(e.key==' '){e.preventDefault();play()}});
+draw();
+</script>
+</body>
+</html>
