@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Step through Quick Sort with an interactive array and code visualizer.">
+<title>Quick Sort Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#14213d;--mute:#5d6b86;--line:#d8deea;--acc:#2f6bff;--amb:#f5a524;--grn:#12a36b;--red:#e5484d;--code:#0f1729;--codeink:#c9d4ee;--cell:#e8eefc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1020;--card:#141b30;--ink:#e6ebf8;--mute:#8d9bbb;--line:#27304b;--acc:#5b8cff;--amb:#ffb938;--grn:#2ed39a;--red:#ff6b70;--code:#080c18;--cell:#1c2745}}
+:root[data-theme="dark"]{--bg:#0b1020;--card:#141b30;--ink:#e6ebf8;--mute:#8d9bbb;--line:#27304b;--acc:#5b8cff;--amb:#ffb938;--grn:#2ed39a;--red:#ff6b70;--code:#080c18;--cell:#1c2745}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Space Grotesk",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:0}
+.sub{color:var(--mute);margin:2px 0 16px}
+button,input{font:inherit;color:var(--ink)}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 14px}
+button:hover:not(:disabled){border-color:var(--acc)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.bar label{color:var(--mute);font-size:13px}
+#ai{width:min(330px,100%);padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font:14px "JetBrains Mono",monospace}
+.ctl{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.ctl input[type=range]{flex:1;min-width:90px}
+.go{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.ctl .cnt{margin-left:auto;color:var(--mute);font:13px "JetBrains Mono",monospace}
+.main{display:grid;grid-template-columns:1fr 400px;gap:14px}
+@media(max-width:900px){.main{grid-template-columns:1fr}}
+.mem{min-height:180px;overflow-x:auto}
+.blk{border:2px solid var(--line);border-radius:10px;padding:10px 12px 8px;margin-bottom:12px}
+.bh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:12px "JetBrains Mono",monospace;color:var(--mute);margin-bottom:6px}
+.ptr{background:var(--acc);color:#fff;padding:2px 8px;border-radius:99px;font-weight:600}
+.ptr.pivot{background:var(--amb);color:#201400}
+.cells{display:flex;gap:6px;padding:40px 0 4px;position:relative}
+.cw{display:flex;flex-direction:column;align-items:center;position:relative}
+.cw small{color:var(--mute);font:11px "JetBrains Mono",monospace;margin-top:3px}
+.cell{width:50px;height:46px;border:2px solid var(--line);border-radius:8px;display:grid;place-items:center;font:600 16px "JetBrains Mono",monospace;transition:background .3s,border-color .3s}
+.cell.used{background:var(--cell);border-color:var(--acc)}
+.cell.ghost{opacity:.35;border-style:dashed}
+.cell.done{background:rgba(18,163,107,.18);border-color:var(--grn)}
+.cell.scan{border-color:var(--acc)}
+.cell.pivot{background:var(--amb);border-color:var(--amb);color:#201400}
+.cell.swap{background:var(--grn);border-color:var(--grn);color:#fff;animation:pop .45s}
+.pt{position:absolute;top:-34px;white-space:nowrap;font:700 11px "JetBrains Mono",monospace;font-style:normal;padding:2px 7px;border-radius:6px;color:#fff;background:var(--pc);animation:pop .35s}
+.pt::after{content:"";position:absolute;left:50%;margin-left:-6px;bottom:-6px;border:6px solid transparent;border-bottom:0;border-top-color:var(--pc)}
+.pt.i{--pc:var(--acc);top:-54px}.pt.j{--pc:var(--grn)}.pt.p{--pc:var(--amb);top:-54px;color:#201400}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.vars{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.v{font:13px "JetBrains Mono",monospace;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 9px}
+.v b{color:var(--acc)}
+.stk{font:12px "JetBrains Mono",monospace;color:var(--mute);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.stk span{background:var(--cell);color:var(--ink);border-radius:6px;padding:2px 8px}
+.stk span:last-child{outline:2px solid var(--amb)}
+.say{border-left:5px solid var(--acc);margin-top:10px;font-size:16px;min-height:78px}
+.say.err{border-color:var(--red)}.say.ok{border-color:var(--grn)}
+.say small{display:block;color:var(--mute);margin-bottom:4px}
+.out{font:13px "JetBrains Mono",monospace;margin-top:8px;color:var(--mute);min-height:20px}
+.out b{color:var(--ink)}
+.code{background:var(--code);border-radius:12px;padding:10px 0;overflow-x:auto;font:13px/1.75 "JetBrains Mono",monospace;color:var(--codeink);align-self:start;position:relative;max-height:calc(100vh - 40px);overflow:auto}
+.code h3{margin:0 14px 6px;font:600 12px "Space Grotesk",sans-serif;color:#7f8db0}
+.ln{display:flex;white-space:pre;padding:0 14px;border-left:4px solid transparent}
+.ln i{width:26px;color:#51608a;font-style:normal;flex:none}
+.ln.on{background:rgba(91,140,255,.22);border-left-color:#ffb938;color:#fff}
+.k{color:#ff9bd0}.c{color:#6c7ba3}
+.hint{font-size:12px;color:var(--mute);margin:8px 2px 0}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Quick Sort Visualizer</h1>
+<p class="sub">Choose an array, then step through each pivot, comparison, and swap. Keys: &larr; &rarr; step, Space plays.</p>
+<div class="card bar">
+<label for="ai">array</label><input id="ai" type="text" value="8, 3, 5, 4, 7, 6, 1, 2" aria-describedby="hint">
+<button id="ld">Load</button><button id="rnd">Random</button>
+</div>
+<p class="hint" id="hint">Enter 2–12 integers from -999 to 999, separated by commas or spaces.</p>
+<div class="card ctl">
+<button id="prv">&#9664; Back</button>
+<button id="nxt" class="go"></button>
+<button id="ply">&#9654; Auto-play</button>
+<input id="scr" type="range" min="0" max="0" value="0" aria-label="Timeline">
+<label>speed <input id="spd" type="range" min="1" max="5" value="3" aria-label="Playback speed"></label>
+<span class="cnt" id="cnt" aria-live="polite"></span>
+</div>
+<div class="main">
+<div>
+<div class="card mem" id="mem" aria-live="polite"></div>
+<div class="card say" id="say"></div>
+<div class="out" id="out"></div>
+</div>
+<div class="code" id="code" aria-label="C++ Quick Sort code"></div>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const CODE=["#include <iostream>","using namespace std;","","int partition(int arr[], int low, int high) {","    int pivot = arr[high];","    int i = low - 1;","","    for (int j = low; j < high; j++) {","        if (arr[j] <= pivot) {","            i++;","            swap(arr[i], arr[j]);","        }","    }","","    swap(arr[i + 1], arr[high]);","    return i + 1;","}","","void quickSort(int arr[], int low, int high) {","    if (low < high) {","        int pi = partition(arr, low, high);","","        quickSort(arr, low, pi - 1);","        quickSort(arr, pi + 1, high);","    }","}","","int main() {","    int arr[] = {8, 3, 5, 4, 7, 6, 1, 2};","    int n = sizeof(arr) / sizeof(arr[0]);","","    quickSort(arr, 0, n - 1);","","    for (int i = 0; i < n; i++)","        cout << arr[i] << \" \";","","    return 0;","}"];
+let A0=[8,3,5,4,7,6,1,2],FR=[],cur=0,timer=null;
+
+function build(){
+ stop();
+ const a=A0.slice(),n=a.length,fr=[],stack=["main()"],done=new Set();let c={},comparisons=0;
+ const F=(line,msg,t="",out)=>fr.push({line,msg,t,out,a:a.slice(),stack:stack.slice(),done:[...done],c:{...c,comparisons}});
+ function qs(low,high){
+  stack.push(`quickSort(${low}, ${high})`);c={low,high};
+  F(19,`quickSort(arr, ${low}, ${high}) is called for [${a.slice(low,high+1).join(", ")}].`);
+  if(low>=high){
+   if(low===high)done.add(low);
+   F(20,`low < high ? No. This range has fewer than two values, so it is already sorted.`,"ok");
+   F(25,"Return to the previous call.","ok");stack.pop();return;
+  }
+  F(20,`low < high ? Yes. Partition this range around its last value.`);
+  const pi=partition(low,high);
+  done.add(pi);c={low,high,pi};
+  F(22,`The pivot is now fixed at index ${pi}. Recursively sort the left range [${low}..${pi-1}].`);
+  qs(low,pi-1);
+  c={low,high,pi};
+  F(23,`The left range is sorted. Recursively sort the right range [${pi+1}..${high}].`);
+  qs(pi+1,high);
+  for(let i=low;i<=high;i++)done.add(i);
+  c={low,high,pi};F(25,`quickSort(${low}, ${high}) is complete.`,"ok");stack.pop();
+ }
+ function partition(low,high){
+  stack.push(`partition(${low}, ${high})`);
+  let pivot=a[high],i=low-1;
+  c={low,high,pivot,i};F(4,`pivot = arr[${high}] = ${pivot}. Lomuto partition uses the last value as its pivot.`);
+  c={low,high,pivot,i};F(5,`i = low - 1 = ${i}. Values at or before i will be at most the pivot.`);
+  for(let j=low;j<high;j++){
+   c={low,high,pivot,i,j};F(7,`Check arr[${j}] = ${a[j]} against the pivot ${pivot}.`);
+   comparisons++;
+   c={low,high,pivot,i,j,compare:true};
+   if(a[j]<=pivot){
+    F(8,`${a[j]} <= ${pivot} ? Yes. Move the boundary forward.`);
+    i++;c={low,high,pivot,i,j};
+    F(9,`i++ makes i = ${i}.`);
+    const left=a[i],right=a[j];[a[i],a[j]]=[a[j],a[i]];
+    c={low,high,pivot,i,j,swap:[i,j]};
+    F(10,`Swap arr[${i}] = ${left} and arr[${j}] = ${right}. Values <= pivot gather on the left.`);
+   }else{
+    F(8,`${a[j]} <= ${pivot} ? No. Leave it on the right side for now.`);
+   }
+  }
+  c={low,high,pivot,i};F(15,`Place the pivot after the values that are <= it: swap arr[${i+1}] and arr[${high}].`);
+  const left=a[i+1],right=a[high];[a[i+1],a[high]]=[a[high],a[i+1]];
+  const pi=i+1;c={low,high,pivot,i,j:high,pi,swap:[pi,high]};
+  F(15,`Swap ${left} and ${right}. The pivot ${pivot} is now at index ${pi}.`);
+  c={low,high,pivot,pi};F(16,`Return ${pi}, the pivot's final index.`);
+  stack.pop();return pi;
+ }
+ F(28,`main() starts with arr = {${a.join(", ")}}.`);
+ F(30,`n = sizeof(arr) / sizeof(arr[0]) = ${n}.`);
+ F(32,`Call quickSort(arr, 0, n - 1) = quickSort(arr, 0, ${n-1}).`);
+ qs(0,n-1);
+ c={};F(35,`Print the sorted array: ${a.join(" ")}.`,"ok",a.join(" ")+" ");
+ F(-1,`Done! Quick Sort used ${comparisons} comparisons. Its average time is O(n log n); its worst case is O(n²).`);
+ FR=fr;cur=0;draw();
+}
+
+function hl(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\b(void|int|if|while|else|return|for|using|namespace|sizeof)\b/g,'<span class=k>$1</span>')}
+function draw(){
+ const f=FR[cur]||{line:-1,a:A0,stack:[],done:[],c:{},msg:"Enter an array and press Start. Quick Sort picks a pivot, moves smaller values to its left, then sorts the two sides recursively."};
+ const c=f.c,has=c.low!==undefined,inRange=x=>has&&x>=c.low&&x<=c.high;
+ const cells=f.a.map((v,x)=>{
+  let q="cell "+(inRange(x)?"used":"ghost");
+  const pivotIndex=c.pi!==undefined?c.pi:c.high;
+  if(f.done.includes(x))q="cell done";
+  if(c.j===x&&inRange(x))q+=" scan";
+  if(c.pivot!==undefined&&pivotIndex===x&&inRange(x))q="cell pivot";
+  if(c.swap&&c.swap.includes(x))q="cell swap";
+  const tags=[];
+  if(c.i===x&&inRange(x))tags.push('<em class="pt i">i</em>');
+  if(c.j===x&&inRange(x))tags.push('<em class="pt j">j</em>');
+  if(c.pivot!==undefined&&pivotIndex===x&&inRange(x))tags.push('<em class="pt p">pivot</em>');
+  return `<div class="cw">${tags.join("")}<div class="${q}">${v}</div><small>${x}</small></div>`;
+ }).join("");
+ const range=has?` &middot; working on [${c.low}..${c.high}]`:"";
+ let h=`<div class="blk"><div class="bh"><span class="ptr">arr &rarr;</span><span>array &middot; ${f.a.length} values${range}</span></div><div class="cells">${cells}</div></div>`;
+ const vals=["low","high","pivot","i","j","pi"].filter(x=>c[x]!==undefined).map(x=>`<span class="v">${x} = <b>${c[x]}</b></span>`).join("");
+ h+=`<div class="vars">${vals}<span class="v">comparisons = <b>${c.comparisons||0}</b></span></div><div class="stk">call stack: ${f.stack.length?f.stack.map(s=>`<span>${s}</span>`).join("&rsaquo;"):"(empty)"}</div>`;
+ $("mem").innerHTML=h;
+ $("code").innerHTML="<h3>C++ code &middot; line-by-line trace</h3>"+CODE.map((t,i)=>i===28?"    int arr[] = {"+A0.join(", ")+"};":t).map((t,i)=>`<div class="ln${i+1===f.line?" on":""}"><i>${i+1}</i>${hl(t)}</div>`).join("");
+ const code=$("code"),active=code.querySelector(".on");if(active)code.scrollTop=Math.max(0,active.offsetTop-code.clientHeight/2);
+ $("say").className="card say "+(f.t||"");
+ $("say").innerHTML=`<small>${FR.length?"What is happening":"Ready"}</small>${f.msg}`;
+ const output=FR.slice(0,cur+1).map(x=>x.out).filter(Boolean).pop();
+ $("out").innerHTML=output?`Console output: <b>${output}</b>`:"";
+ $("cnt").textContent=FR.length?`Step ${cur+1} / ${FR.length}`:"";
+ const last=FR.length-1;
+ $("prv").disabled=!FR.length||cur===0;
+ $("nxt").innerHTML=!FR.length?"&#9654; Start quickSort()":cur>=last?"&#8635; Run again":"Next step &#9654;";
+ $("scr").max=Math.max(0,last);$("scr").value=cur;$("scr").disabled=!FR.length;
+}
+function go(d){cur=Math.max(0,Math.min(FR.length-1,cur+d));draw();if(cur>=FR.length-1)stop()}
+function stop(){clearInterval(timer);timer=null;$("ply").innerHTML="&#9654; Auto-play"}
+function primary(){stop();if(!FR.length||cur>=FR.length-1)build();else go(1)}
+function play(){if(timer)return stop();if(!FR.length||cur>=FR.length-1)build();$("ply").innerHTML="&#10074;&#10074; Pause";timer=setInterval(()=>go(1),[1800,1300,900,550,300][$("spd").value-1])}
+function load(){
+ stop();
+ const input=$("ai").value.trim();
+ const parts=input?input.split(/[\s,]+/):[],values=parts.map(Number);
+ const invalid=!/^-?\d+(?:\s*(?:,\s*|\s+)-?\d+)*$/.test(input)||parts.length<2||parts.length>12||values.some(v=>!Number.isInteger(v)||v < -999||v > 999);
+ if(invalid){FR=[];cur=0;draw();$("say").className="card say err";$("say").innerHTML="<small>Invalid array</small>Enter 2–12 whole numbers from -999 to 999, separated by commas or spaces.";return}
+ A0=values;$("ai").value=A0.join(", ");FR=[];cur=0;draw();
+}
+function rand(){$("ai").value=Array.from({length:5+Math.floor(Math.random()*5)},()=>Math.floor(Math.random()*199)-99).join(", ");load()}
+$("ld").onclick=load;$("rnd").onclick=rand;
+$("ai").onkeydown=e=>{if(e.key==="Enter")load()};
+$("prv").onclick=()=>{stop();go(-1)};$("nxt").onclick=primary;$("ply").onclick=play;
+$("scr").oninput=e=>{stop();cur=+e.target.value;draw()};
+document.addEventListener("keydown",e=>{if(e.target.tagName==="INPUT"&&e.target.type!=="range")return;if(e.key==="ArrowRight"){e.preventDefault();primary()}if(e.key==="ArrowLeft"){stop();go(-1)}if(e.key===" "){e.preventDefault();play()}});
+draw();
+</script>
+</body>
+</html>
